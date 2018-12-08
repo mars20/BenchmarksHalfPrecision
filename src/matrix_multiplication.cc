@@ -1,6 +1,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include "stats.h"
 #include "half.hpp"
 #include "riscv_extensions.h"
 #include "half_precision_util.h"
@@ -32,12 +33,24 @@ int main(int argc, char **argv) {
   initializeMatrix(matrix_a, matrix_a_rows * matrix_a_cols, true);
   initializeMatrix(matrix_b, matrix_b_rows * matrix_b_cols, true);
 
+  riscv::stats::csr counters;
+
+  printf("Scalar Matrix Matrix Multiplication\n");
+  riscv::stats::StartStats(&counters);  // enable csr counters
   ScalarMatrixMatrixMultiply(matrix_a, matrix_b, result_scalar,
                              matrix_a_rows, matrix_b_rows,
                              matrix_b_cols);
+
+  riscv::stats::StopStats(&counters);    // disable csr counters
+  riscv::stats::PrintStats(&counters);
+
+  printf("Vector Matrix Matrix Multiplication\n");
+  riscv::stats::StartStats(&counters);  // enable csr counters
   VectorMatrixMatrixMultiply(matrix_a, matrix_b, result_vect,
                              matrix_a_rows, matrix_b_rows,
                              matrix_b_cols);
+  riscv::stats::StopStats(&counters);    // disable csr counters
+  riscv::stats::PrintStats(&counters);
 
   free(matrix_a);
   free(matrix_b);

@@ -266,4 +266,91 @@ inline void VectorMatrixMatrixMultiply(float16 *matrix_a,
   }
 }
 
+inline void VectorSparseMatrixVectorMultiplication(float16* sp_data,
+                                                   float16* vect,
+                                                   float16* result,
+                                                   int matrix_rows,
+                                                   int* row_length,
+                                                   int* col_idx){
+  SetVcfg(kElementWidthMax16);
+
+  float16 *sp_mat_ptr = sp_data;
+  int *col_idx_ptr = col_idx;
+  for(int i=0; i < matrix_rows; i++) {
+    int postamble_start = row_length[i] -
+                          (row_length[i] &(kMaxVectorLength16 - 1));
+    SetVl(kMaxVectorLength16);
+    asm("vlsd va1, 0(%0), s \t\n"
+        :
+        :"r" (vect + i)
+        );
+
+    for(int j=0; j < postamble_start; j+=kMaxVectorLength16){
+      asm("vlsd va2, 0(%0), v \t\n"
+          "vlsd va3, 0(%1), v \t\n"
+          "vlxd va4, 0(%2), va3, v \t\n"
+          "vfmadd va4, va1, va2, va4, v \t\n"
+          "vsxd va4, (%2), va3, v \t\n"
+          :
+          :"r"(sp_mat_ptr), "r"(col_idx_ptr), "r"(result));
+      sp_mat_ptr = sp_mat_ptr + kMaxVectorLength16;
+      col_idx_ptr = col_idx_ptr + kMaxVectorLength16;
+    }
+    int len_diff = row_length[i] & (kMaxVectorLength16 - 1);
+    if(len_diff) {
+      SetVl(len_diff);
+      asm("vlsd va2, 0(%0), v \t\n"
+          "vlsd va3, 0(%1), v \t\n"
+          "vlxd va4, 0(%2), va3, v \t\n"
+          "vfmadd va4, va1, va2, va4, v \t\n"
+          "vsxd va4, (%2), va3, v \t\n"
+          :
+          :"r"(sp_mat_ptr), "r"(col_idx_ptr), "r"(result));
+      sp_mat_ptr = sp_mat_ptr + len_diff;
+      col_idx_ptr = col_idx_ptr + len_diff;
+    }
+  }
+}
+
+inline void VectorMatrixVectorMultiplication(float16* matrix,
+                                             float16* vector,
+                                             float16* result,
+                                             int matrix_rows,
+                                             int matrix_cols) {
+  // Vector length is equal to # columns
+  // Output length is equal to # rows
+
+  int new_cols = matrix_cols - (matrix_cols & (kMaxVectorLength16 - 1));
+  int col_diff = matrix_cols & (kMaxVectorLength16 - 1);
+
+  SetVcfg(kElementWidthMax16);
+
+  SetVl(kMaxVectorLength16);
+
+  for (int r = 0; r < matrix_rows; r++) {
+    asm("vlsd va1, 0(%0), s \t\n"
+        :
+        :"r" (vector + r)
+        );
+    for (int c = 0; c < new_cols; c += kMaxVectorLength16) {
+      asm("vlsd va2, 0(%0), v \t\n"
+          "vlsd va4, 0(%1), v \t\n"
+          "vfmadd va4, va1, va2, va4, v \t\n"
+          "vssd va4, 0(%1), v \t\n"
+          :
+          :"r"(matrix+ r*matrix_cols + c), "r"(result + c));
+    }
+
+    if (col_diff != 0) {
+      SetVl(col_diff);
+      asm("vlsd va2, 0(%0), v \t\n"
+          "vlsd va4, 0(%1), v \t\n"
+          "vfmadd va4, va1, va2, va4, v \t\n"
+          "vssd va4, 0(%1), v \t\n"
+          :
+          :"r"(matrix+ r*matrix_cols + new_cols), "r"(result + new_cols));
+    }
+  }
+}
+
 #endif  // RISCV_EXTENSIONS_H_
