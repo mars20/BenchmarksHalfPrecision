@@ -241,10 +241,11 @@ inline void VectorMatrixMatrixMultiply(float16 *matrix_a,
                           (matrix_b_cols & (kMaxVectorLength16 - 1));
   int matrix_b_cols_diff = matrix_b_cols & (kMaxVectorLength16 - 1);
 
-  SetConfig(kElementWidthMax16, kMaxVectorLength16);
+  SetVcfg(kElementWidthMax16);
 
   for (int r_a = 0; r_a < matrix_a_rows; r_a++) {
     for (int c_b = 0; c_b < new_matrix_b_cols; c_b += kMaxVectorLength16) {
+      SetVl(kMaxVectorLength16);
       __VectorClearAccum();
       for (int r_b = 0; r_b < matrix_b_rows; r_b++) {
         __VectorLoadInput1Scalar(matrix_a + r_a * matrix_b_rows + r_b);

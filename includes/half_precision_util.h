@@ -14,16 +14,19 @@ limitations under the License.
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+
 #include "half.hpp"
 
 using half_float::half;
 
 typedef half float16;
 
+
 template <class T>
 void initializeMatrix(T *matrix, const int matrix_size, bool random = false) {
   for (int i = 0; i < matrix_size; i++) {
-    float val = random ? static_cast<float>(rand()) / RAND_MAX : 0.0f;
+    float val = random ? ((static_cast<float>(rand()) / RAND_MAX)) : 0.0f;
+    //float val = random ? 2.0f : 0.0f;
     matrix[i] = T(val);
   }
 }

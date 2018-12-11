@@ -52,6 +52,18 @@ int main(int argc, char **argv) {
   riscv::stats::StopStats(&counters);    // disable csr counters
   riscv::stats::PrintStats(&counters);
 
+  //printMatrix(matrix_a,  matrix_a_rows, matrix_b_rows);
+  // printMatrix(result_scalar,  matrix_a_rows, matrix_b_cols);
+  // printMatrix(result_vect,  matrix_a_rows, matrix_b_cols);
+
+  // for(int i=0;i<matrix_a_rows * matrix_b_cols; i++){
+  //   float diff = result_scalar[i] - result_vect[i];
+  //   if(diff >  1e-5 || diff <  -1e-5){
+  //     printf("Result at index: %d differs by %f\n", i, diff);
+  //     }
+  // }
+
+
   free(matrix_a);
   free(matrix_b);
   free(result_scalar);
