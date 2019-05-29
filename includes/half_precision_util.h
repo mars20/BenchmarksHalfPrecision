@@ -98,7 +98,7 @@ void ScalarMatrixMatrixMultiply(T *matrix_a,
 
   for (int r_a = 0; r_a < matrix_a_rows; r_a++) {
     for (int c_b = 0; c_b < matrix_b_cols; c_b++) {
-      partialProductSum = T(0.0);
+      partialProductSum = 0.0;
       for (int r_b = 0; r_b < matrix_b_rows; r_b++) {
         partialProductSum += matrix_a[r_b + r_a * matrix_b_rows]
                              * matrix_b[r_b * matrix_b_cols + c_b];
@@ -115,12 +115,24 @@ void MatrixVectorMultiplication(int matrix_rows,
                                 T* vect,
                                 T* result) {
   T partialProduct;
+
   for(int i=0; i<matrix_cols; i++){
     partialProduct = 0.0;
     for(int j=0; j<matrix_rows; j++){
       partialProduct += vect[j]*sp_mat[j*matrix_cols+i];
     }
     result[i] = partialProduct;
+  }
+}
+
+template<class T>
+void ScalarVectorVectorMultiplication(int vector_length,
+                                T* vector1,
+                                T* vector2,
+                                T* result) {
+
+  for(int i=0; i<vector_length; i++){
+      result[i] = vector1[i]*vector2[i];
   }
 }
 
