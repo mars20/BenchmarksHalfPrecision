@@ -5,6 +5,7 @@
 #include "half.hpp"
 #include "riscv_extensions.h"
 #include "half_precision_util.h"
+#include "neon_extensions.h"
 
 using half_float::half;
 
@@ -82,10 +83,24 @@ int main(int argc, char **argv) {
   			     matrix_a_rows, matrix_b_rows,
   			     matrix_b_cols);
 
+  #ifdef VNEON
   #ifdef ARM_GEM5
   m5_dump_stats(0, 0);
   #endif
-  
+
+  #ifdef ARM_GEM5
+  m5_reset_stats(0,0);
+    #endif
+
+  NeonMatrixMatrixMultiply(matrix_a_full, matrix_a_rows, matrix_b_rows,
+                           matrix_b_full, matrix_b_cols, result_scalar_full);
+
+  #ifdef ARM_GEM5
+  m5_dump_stats(0, 0);
+  #endif
+
+  #endif
+
   #ifdef PROF_RISCV
   riscv::stats::StopStats(&counters);    // disable csr counters
   riscv::stats::PrintStats(&counters);
