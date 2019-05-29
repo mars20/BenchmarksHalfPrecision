@@ -15,6 +15,13 @@ limitations under the License.
 
 # include <stdio.h>
 
+#ifdef ARM_GEM5
+extern "C" void m5_checkpoint(int a, int b);
+extern "C" void m5_reset_stats(int a, int b);
+extern "C" void m5_dump_stats (int a, int b);
+extern "C" void m5_exit (int a);
+#endif
+
 #define read_csr(reg) ({ unsigned long __tmp;    \
   asm volatile ("csrr %0, " #reg : "=r"(__tmp)); \
    __tmp; })
@@ -39,8 +46,8 @@ inline void StopStats(struct csr *counters) {
 }
 
 inline void PrintStats(struct csr *counters) {
-  printf("# Cycles in ROI = %ld\n", counters->cycles);
-  printf("# Instruction in ROI = %ld\n", counters->instret);
+  printf("[info] # Cycles in ROI = %ld\n", counters->cycles);
+  printf("[info] # Instruction in ROI = %ld\n", counters->instret);
 }
 
 } // stats
