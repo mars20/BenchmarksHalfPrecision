@@ -83,14 +83,17 @@ int main(int argc, char **argv) {
   			     matrix_a_rows, matrix_b_rows,
   			     matrix_b_cols);
 
-  #ifdef VNEON
   #ifdef ARM_GEM5
   m5_dump_stats(0, 0);
   #endif
 
+  printf("[info] Vector Matrix Matrix Multiplication\n");
+
+  #ifdef VNEON
+
   #ifdef ARM_GEM5
   m5_reset_stats(0,0);
-    #endif
+  #endif
 
   NeonMatrixMatrixMultiply(matrix_a_full, matrix_a_rows, matrix_b_rows,
                            matrix_b_full, matrix_b_cols, result_scalar_full);
@@ -105,8 +108,6 @@ int main(int argc, char **argv) {
   riscv::stats::StopStats(&counters);    // disable csr counters
   riscv::stats::PrintStats(&counters);
   #endif
-  
-  printf("[info] Vector Matrix Matrix Multiplication\n");
   
   #ifdef PROF_RISCV
   riscv::stats::StartStats(&counters);  // enable csr counters

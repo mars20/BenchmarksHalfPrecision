@@ -460,25 +460,29 @@ inline void VectorVectorMultiplication(float16* vector1,
   SetVcfg(kElementWidthMax16);
 
   SetVl(kMaxVectorLength16);
+  __VectorClearAccum();
 
     for (int l = 0; l < new_len; l += kMaxVectorLength16) {
       asm("vlsd va1, 0(%0), v \t\n"
           "vlsd va2, 0(%1), v \t\n"
-           "vfmul va4, va1, va2, v \t\n"
-           "vssd va4, 0(%2), v \t\n"
+          "vfmul va4, va1, va2, v \t\n"
           :
-          :"r"(vector1+ l), "r"(vector2+ l), "r"(result + l));
+          :"r"(vector1+ l), "r"(vector2+ l));
     }
 
     if (len_diff != 0) {
       SetVl(len_diff);
       asm("vlsd va1, 0(%0), v \t\n"
           "vlsd va2, 0(%1), v \t\n"
-          "vfmul va4, va1, va2, v \t\n"
-          "vssd va4, 0(%2), v \t\n"
           :
-          :"r"(vector1 + new_len), "r"(vector2 + new_len), "r"(result + new_len));
+          :"r"(vector1 + new_len), "r"(vector2 + new_len));
+
+      SetVl(kMaxVectorLength16);
+      asm("vfmul va4, va1, va2, v \t\n");
     }
+    SetVl(kMaxVectorLength16);
+    asm volatile("vfredsum vt11, va4 \t\n");  // Reduce partial sum to single value
+    __VectorStoreAccum(result);  // Store as scalar value
 }
 #endif 
 
