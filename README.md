@@ -10,7 +10,7 @@ Install the riscv-tools from: https://github.com/mars20/riscv-tools/tree/v-ext
 ```shell
 $ git clone https://github.com/mars20/BenchmarksHalfPrecision.git
 $ cd BenchmarksHalfPrecision
-$ make benchmark
+$ make -f Makefile TARGET=riscv64EXT benchmark
 ```
 
 #### Execute a model
