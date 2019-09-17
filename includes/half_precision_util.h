@@ -128,11 +128,11 @@ void MatrixVectorMultiplication(int matrix_rows,
 template<class T>
 void ScalarVectorVectorProduct(T* vector1,
                                T* vector2,
-                               T* result,
+                               T& result,
                                int vector_length) {
-
+  result =0;
   for(int i=0; i<vector_length; i++){
-      result[i] += vector1[i]*vector2[i];
+      result += vector1[i]*vector2[i];
   }
 }
 

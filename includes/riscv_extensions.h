@@ -238,6 +238,7 @@ inline void __VectorStorePartialOutput(T* store_address) {
 
 template <class T>
 inline void __VectorStoreAccum(T* store_address) {
+  // printf("in store accum, storing at, %f, %x\n",store_address, store_address);
   asm volatile(
                "vssd vt11, 0(%0), s \t\n"
                :
@@ -449,11 +450,11 @@ inline void VectorMatrixVectorMultiplication(float16* matrix,
 
 inline void VectorVectorMultiplication(float16* vector1,
                                        float16* vector2,
-                                       float16* result,
+                                       float16 &result,
                                        int vect_len) {
   // Vector length is equal to # columns
   // Output length is equal to # rows
-
+  // printf("%.4f, %x \n",result,&result);
   int new_len = vect_len - (vect_len & (kMaxVectorLength16 - 1));
   int len_diff = vect_len & (kMaxVectorLength16 - 1);
 
@@ -465,7 +466,7 @@ inline void VectorVectorMultiplication(float16* vector1,
     for (int l = 0; l < new_len; l += kMaxVectorLength16) {
       asm("vlsd va1, 0(%0), v \t\n"
           "vlsd va2, 0(%1), v \t\n"
-          "vfmul va4, va1, va2, v \t\n"
+          "vfmadd vt4, va1, va2, vt4, v \t\n"
           :
           :"r"(vector1+ l), "r"(vector2+ l));
     }
@@ -478,11 +479,12 @@ inline void VectorVectorMultiplication(float16* vector1,
           :"r"(vector1 + new_len), "r"(vector2 + new_len));
 
       SetVl(kMaxVectorLength16);
-      asm("vfmul va4, va1, va2, v \t\n");
+      asm("vfmadd vt4, va1, va2, vt4, v  \t\n");
     }
     SetVl(kMaxVectorLength16);
-    asm volatile("vfredsum vt11, va4 \t\n");  // Reduce partial sum to single value
-    __VectorStoreAccum(result);  // Store as scalar value
+    asm volatile("vfredsum vt11, vt4 \t\n");  // Reduce partial sum to single value
+    // printf("gonna store\n");
+    __VectorStoreAccum(&result);  // Store as scalar value
 }
 #endif 
 

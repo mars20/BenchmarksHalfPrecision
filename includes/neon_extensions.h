@@ -119,24 +119,24 @@ void NeonVectorVectorProduct(float* vector1, float* vector2,
 
 void NeonVectorVectorProductAccumulate(float* vector1,
                                        float* vector2, int v_size,
-                                       float* result) {
+                                       float& result) {
   // If v_size is not divisible by kWeightsPerNeonLane, we cannot use the main
   // vectorized loop, and we need to process sequentially. postamble_start shows
   // the start index where this should happen.
     const int postamble_start =
       v_size - (v_size & (kFloatWeightsPerNeonLane - 1));
+    float32x4_t acc_32x4 = vmovq_n_f32(0.0);
     for (int v = 0; v < postamble_start; v += kFloatWeightsPerNeonLane) {
       // Load 4 float values from vector1 and vector2 and accumulator.
       float32x4_t v1_f32x4 = vld1q_f32(vector1 + v);
       float32x4_t v2_f32x4 = vld1q_f32(vector2 + v);
-      float32x4_t acc_32x4 = vld1q_f32(result + v);
       // Vector multiply-accumulate 4 float
       acc_32x4 = vmlaq_f32(acc_32x4, v1_f32x4, v2_f32x4);
-      // Save to result array.
-      vst1q_f32(&result[v], acc_32x4);
     }
+    // Save to result array.
+    result = vaddvq_f32(acc_32x4);
     for (int v = postamble_start; v < v_size; v++) {
-      result[v] += vector1[v] * vector2[v];
+      result += vector1[v] * vector2[v];
     }
 }
 
